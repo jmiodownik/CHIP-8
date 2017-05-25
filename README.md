@@ -1,5 +1,5 @@
-#CHIP-8 Emulator
-
+CHIP-8 Emulator
+===============
 
 This is a processor emulation project based of the [CHIP-8][1], written in 
 C/C++. It will fully implement its [opcodes][2] and follow the specificaion.
