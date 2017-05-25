@@ -9,11 +9,13 @@ C/C++. It will fully implement its [opcodes][2] and follow the specificaion.
 [2]: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
 
-##Dependencies
+Dependencies
+------------
 
 TODO
 
-##Building
+Building
+--------
 
 TODO
 
