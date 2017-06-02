@@ -127,6 +127,7 @@ unsigned char* c8_get_memory(chip8* chip8)
 
 void c8_emulate_cycle(chip8* chip8)
 {
+	debug("program counter is now %hx", chip8->pc);
 	unsigned short opcode = 0;
 	//Fetch
 
@@ -199,12 +200,14 @@ void c8_emulate_cycle(chip8* chip8)
 					chip8->pc = *(chip8->sp);
 					debug("pc is now %hx", chip8->pc);
 					chip8->pc+=2;
+					debug("pc is now %hx", chip8->pc);
 					break;
 
 				default:
 					log_err("Invalid opcode found: 0x%X", opcode);
 					break;
 			}
+			break;
 
 		case 0x1000: //jump to address nnn
 			chip8->pc = opcode & 0x0FFF;
@@ -322,6 +325,7 @@ void c8_emulate_cycle(chip8* chip8)
 					chip8->V[(opcode & 0x00F0) >> 4] -=\
 									   chip8->V[(opcode & 0x0F00) >> 8];
 					chip8->pc += 2;
+					break;
 
 				case 0x000E: //Shift Vx left one. Set Vf to MSb before shift
 					chip8->V[0xF] = chip8->V[(opcode & 0x0F00) >> 8] &\
