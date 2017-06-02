@@ -1,4 +1,4 @@
-CFLAGS=-Wall -g -O0 -DNDEBUG
+CFLAGS=-Wall -g -O0 -DNDEBUG -lglut -lGLU -lGL
 
 
 CC = gcc
