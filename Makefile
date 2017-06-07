@@ -8,9 +8,9 @@ SOURCES := $(shell find $(SRCDIR) -name '*.c')
 OBJS    = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SOURCES))
 
 
-all: main
+all: Chip8
 
-main: $(OBJS)
+Chip8: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
 bin/%.o: src/%.c
