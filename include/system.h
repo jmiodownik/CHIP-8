@@ -14,5 +14,5 @@ int c8_load_game(chip8*);
 //this return value may need to be fixed
 unsigned char* c8_get_memory(chip8*);
 unsigned short* getPC(chip8*);
-
+void test_stack(chip8*);
 #endif

@@ -26,17 +26,26 @@ int main(int argc, char** argv)
 //	initialize();
 //	load_game();
 //
+
+
+
+//Test the stack
+#ifdef DEBUG
+	test_stack(chip8);
+#endif
+
+/*
 	for(;;)
 	{
 		c8_emulate_cycle(chip8);
 
-//		if(c8_get_draw_flag(chip8)){
-//			draw_graphics();
-//		}
-//
-//		set_keys(chip8);
+		if(c8_get_draw_flag(chip8)){
+			draw_graphics();
+		}
+
+		set_keys(chip8);
 	}
-//
+*/
 	return 0;
 error:
 	return 1;

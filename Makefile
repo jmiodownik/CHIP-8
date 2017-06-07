@@ -16,5 +16,9 @@ main: $(OBJS)
 bin/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+
+dev: CFLAGS=-Wall -g -O0 -DDEBUG
+dev: all
+
 clean: $(OBJDIR)
 	rm -f $(OBJS)

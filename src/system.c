@@ -50,6 +50,7 @@ int c8_initialize(chip8* chip8)
 {
 	debug("Initializing chip8 processor...");
 
+	//Programs Start at 0x200 on the chip8
 	chip8->pc = 0x200;
 	chip8->opcode = 0;
 	chip8->I = 0;
@@ -169,7 +170,7 @@ void c8_emulate_cycle(chip8* chip8)
 
 		case 0x2000:
 		      //save off the address of the pc because we're about to jump to a new instruction
-		      chip8->stack[*(chip8->sp)] = chip8->pc;
+		      *(chip8->sp) = chip8->pc;
 		      (chip8->sp)++;
 
 		      chip8->pc = opcode & 0x0FFF;
@@ -186,4 +187,25 @@ void c8_emulate_cycle(chip8* chip8)
 	//Execute
 	
 	//Update Timers
+}
+
+
+
+void test_stack(chip8* chip8)
+{
+	unsigned short* s = chip8->stack;
+	log_info("Stack is at location %p, and the new stack pointer is %p", chip8->stack, s);
+	for (unsigned short i = 0 ; i < 11 ; i++)
+	{
+		*s = i;
+		s++;
+	}
+	//reset the stack pointer
+	s = chip8->sp;
+	
+	for (int i=0 ; i < 11 ; i++, s++)
+	{
+		log_info("%X", *s);
+
+	}
 }
