@@ -33,6 +33,10 @@ struct chip8_t {
 
 	//array containing input keys (0x0 - 0xF)
 	unsigned char* key;
+
+	unsigned short draw_flag;
+	unsigned short GFX_HEIGHT;
+	unsigned short GFX_WIDTH;
 };
 
 chip8* create_chip8()
@@ -69,10 +73,12 @@ int c8_initialize(chip8* chip8)
 	chip8->key = calloc(16, sizeof(unsigned char));
 	check_mem(chip8->key);
 
-	chip8->graphics = calloc(64*32, sizeof(unsigned char));	
+	chip8->GFX_HEIGHT = 32;
+	chip8->GFX_WIDTH = 64;
+	chip8->graphics = calloc(chip8->GFX_HEIGHT * chip8->GFX_WIDTH, sizeof(unsigned char));	
 	check_mem(chip8->graphics);
 
-
+	chip8->draw_flag = 0;
 	//load_fontset
 	//reset timers
 	return 0;
@@ -100,6 +106,8 @@ void c8_emulate_cycle(chip8* chip8)
 	chip8->opcode = chip8->memory[chip8->pc] << 8 | chip8->memory[chip8->pc+1];
 
 	unsigned short opcode = chip8->opcode; //for ease of reference
+	debug("opcode read: %hx", opcode);
+	
 	//Decode
 	
 	/*
@@ -145,19 +153,42 @@ void c8_emulate_cycle(chip8* chip8)
 	switch(opcode & 0xF000){
 		case 0x0000:
 			switch(opcode & 0x000F){
-				case 0x0000:
+				case 0x0000: //Clear the screen
+					for(int i = 0 ; i < chip8->GFX_HEIGHT * chip8->GFX_WIDTH ; i++)
+					{
+						chip8->graphics[i] = 0;
+					}
+					chip8->draw_flag = 1;
+					(chip8->pc)+=2;
 					break;
-				case 0x000E:
+				case 0x000E: //Return from subroutine
+					chip8->sp -= 1;	
+					chip8->pc = *(chip8->sp);
+					chip8->pc+=2;
 					break;
 
+				default:
+					log_err("Invalid opcode found: 0x%X", opcode);
+					break;
 			}
 
-		case 0x2000:
+		case 0x1000: //jump to address nnn
+			chip8->pc = opcode & 0x0FFF;
+			break;	
+		case 0x2000: //call instruction at nnn
 		      //save off the address of the pc because we're about to jump to a new instruction
 		      *(chip8->sp) = chip8->pc;
 		      (chip8->sp)++;
 
 		      chip8->pc = opcode & 0x0FFF;
+		      break;
+		case 0x3000: // skip next instruction if Vx == kk
+		      if(chip8->V[opcode & 0x0F00] == (opcode & 0x0FF))
+		      {
+			      chip8->pc += 4;
+		      }else{
+			      chip8->pc +=2;
+		      }
 		      break;
 		case 0xA000:
 	      		chip8->I = opcode & 0x0FFF;
@@ -176,6 +207,7 @@ void c8_emulate_cycle(chip8* chip8)
 
 int c8_load_program(chip8* chip8, const char* filename)
 {
+	char* buffer = NULL;
 	log_info("Loading program: %s", filename);
 
 	FILE* pFile = fopen(filename, "rb");
@@ -184,15 +216,14 @@ int c8_load_program(chip8* chip8, const char* filename)
 	fseek(pFile, 0, SEEK_END);
 	long lSize = ftell(pFile);
 	rewind(pFile);
-//	debug("File size of %s is %d", filename, (int)lSize);	
 	
-	char* buffer = malloc(sizeof(char) * lSize); //create a buffer to hold the input file
+	buffer = (char*) malloc(sizeof(char) * lSize); //create a buffer to hold the input file
 	check_mem(buffer);
+	debug("%p", buffer);
 
 	//read in the file to the buffer
 	size_t result = fread(buffer, 1, lSize, pFile);
 
-//	debug("Size of read result is: %lu", result);
 	check(result == lSize, "I/O Error reading in the file.e does not have expected size after reading in. \n\tExpected: %li\n\tRead in: %li", lSize, result);
 
 	//copy the buffer into the chip8 memory Starts at 0x200 (512) and is 0x1000 bytes (4096)
@@ -215,7 +246,10 @@ error:
 	{
 		free(buffer);
 	}
-	fclose(pFile);
+	if(pFile)
+	{
+		fclose(pFile);
+	}
 	c8_shutdown(chip8);
 	return 1;
 
