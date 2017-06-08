@@ -39,7 +39,11 @@ int main(int argc, char** argv)
 	ret = c8_load_program(chip8, fName);
 	if(ret) return 1;
 
-	c8_emulate_cycle(chip8);
+	for(;;)
+	{
+		c8_emulate_cycle(chip8);
+	
+	}
 
 	c8_shutdown(chip8);
 	//	setup_graphics();

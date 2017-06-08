@@ -1,6 +1,7 @@
-#include "../include/system.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include "../include/system.h"
 #include "../include/debug.h"
 
 unsigned char chip8_fontset[80] =
@@ -85,6 +86,11 @@ int c8_initialize(chip8* chip8)
 	chip8->memory = calloc(4096, sizeof(unsigned char));
 	check_mem(chip8->memory);
 
+	//loading fontset
+	for (int i =0 ;  i < 80 ; i++)
+	{
+		chip8->memory[i] = chip8_fontset[i];
+	}
 	chip8->V = calloc(16, sizeof(unsigned char));
 	check_mem(chip8->V);
 
@@ -101,8 +107,9 @@ int c8_initialize(chip8* chip8)
 	chip8->graphics = calloc(chip8->GFX_HEIGHT * chip8->GFX_WIDTH, sizeof(unsigned char));	
 	check_mem(chip8->graphics);
 
-	chip8->draw_flag = 0;
-	//load_fontset
+	chip8->draw_flag = 1;
+
+	srand (time(NULL));
 	//reset timers
 	return 0;
 
@@ -186,8 +193,11 @@ void c8_emulate_cycle(chip8* chip8)
 					(chip8->pc)+=2;
 					break;
 				case 0x000E: //Return from subroutine
-					chip8->sp -= 1;	
+					debug("stack pointer is %hx", *(chip8->sp));	
+					chip8->sp-=1;
+					debug("about to restore program counter to: %hx", *(chip8->sp));
 					chip8->pc = *(chip8->sp);
+					debug("pc is now %hx", chip8->pc);
 					chip8->pc+=2;
 					break;
 
@@ -201,7 +211,10 @@ void c8_emulate_cycle(chip8* chip8)
 			break;	
 		case 0x2000: //call instruction at nnn
 			//save off the address of the pc because we're about to jump to a new instruction
+			debug("stack data before: %hx", *(chip8->sp));
+			debug("saving program counter: %hx", chip8->pc);
 			*(chip8->sp) = chip8->pc;
+			debug("saving stack data: %hx", *(chip8->sp));
 			(chip8->sp)++;
 
 			chip8->pc = opcode & 0x0FFF;
@@ -374,7 +387,7 @@ void c8_emulate_cycle(chip8* chip8)
 			}
 						
 			chip8->draw_flag = 1;			
-			chip8->pc += 2;
+	;		chip8->pc += 2;
 			}
 			break;
 			
@@ -404,7 +417,9 @@ void c8_emulate_cycle(chip8* chip8)
 			break;
 
 		case 0xF000:
-			switch(opcode & 0x00FF){
+			debug("masked code: %hx", opcode & 0x00FF);
+			switch(opcode & 0x00FF)
+			{
 				case 0x0007: //Set Vx to the value of delay timer
 					chip8->V[(opcode & 0x0F00) >> 8] = chip8->delay_timer;
 					chip8->pc+=2;
@@ -431,7 +446,7 @@ void c8_emulate_cycle(chip8* chip8)
 						chip8->pc +=2;
 					}
 					break;
-
+				
 				case 0x0015: //Set delay timer to Vx
 					chip8->delay_timer = chip8->V[(opcode & 0x0F00) >> 8];
 					chip8->pc+=2;
@@ -486,12 +501,14 @@ void c8_emulate_cycle(chip8* chip8)
 					}
 
 					chip8->I += ((opcode & 0x0F00) >> 8) + 1;
+					chip8->pc+=2;
 					break;
 
 				default:
 					//TODO add error handling
 					break;	
 			}
+			break;
 		default:
 			log_err("Invalid opcode found: 0x%X", opcode);
 			break;
